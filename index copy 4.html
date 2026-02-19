@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger — Zero-Fee Trading Card Exchange</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --black: #000000;
+      --surface: #0F1115;
+      --text-primary: #F5F5F5;
+      --text-secondary: #9CA3AF;
+      --accent: #00E676;
+      --accent-dim: rgba(0, 230, 118, 0.12);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(0, 230, 118, 0.5);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: var(--black);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;   /* no scrolling */
+      padding-bottom: 0;
+    }
+
+    /* ── CARD BELT ── */
+    .card-belt {
+      width: 100%;
+      overflow: hidden;
+      padding: 36px 0 28px;
+      position: relative;
+      mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+    }
+
+    .card-belt-track {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: max-content;
+      /* 20% faster than original 55s */
+      animation: scroll-belt 26s linear infinite;
+      will-change: transform;
+    }
+
+    @keyframes scroll-belt {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .card-thumb {
+      height: clamp(64px, 9vw, 90px);
+      width:  clamp(46px, 6.5vw, 64px);
+      border-radius: 12px;
+      object-fit: cover;
+      opacity: 0.82;
+      background-color: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      flex-shrink: 0;
+      cursor: pointer;
+      box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.75),
+        0 1px 3px  rgba(0, 0, 0, 0.55),
+        0 0 8px    rgba(0, 230, 118, 0.04);
+      transition:
+        opacity    0.22s ease,
+        transform  0.22s ease,
+        box-shadow 0.22s ease;
+    }
+
+
+
+    .card-thumb:hover {
+      opacity: 1;
+      transform: translateY(-4px) scale(1.05);
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.85),
+        0 3px 8px   rgba(0, 0, 0, 0.65),
+        0 0 14px    rgba(0, 230, 118, 0.10);
+    }
+
+    /* ── HERO ── */
+    .hero{
+      position: relative;
+      height: 100vh;        /* fallback */
+      height: 100svh;       /* safe viewport height — fixes iPhone 15 Pro etc */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 120px; /* space between top and bottom belts */
+    }
+
+    .hero-inner {
+      max-width: 1000px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .hero-wordmark{
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      font-size: clamp(68px, 12vw, 135px);  /* slightly smaller */
+      letter-spacing: -0.03em;
+      line-height: 0.92;
+      margin-bottom: 40px;
+      user-select: none;
+    }
+
+    .hero-sub {
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      font-size: clamp(16px, 2.2vw, 20px);
+      letter-spacing: 0.01em;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    /* ── FORM ── */
+    .waitlist-form {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      align-items: stretch;
+      flex-wrap: nowrap;
+      margin-bottom: 20px;
+    }
+
+    .waitlist-input {
+      height: 60px;
+      flex: 0 1 440px;
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      padding: 0 20px;
+      outline: none;
+      transition: border-color 0.2s ease;
+      -webkit-appearance: none;
+    }
+
+    .waitlist-input::placeholder { color: var(--text-secondary); }
+    .waitlist-input:focus        { border-color: var(--border-focus); }
+
+    .waitlist-btn {
+      height: 60px;
+      padding: 0 28px;
+      background: var(--accent);
+      border: none;
+      border-radius: 14px;
+      color: #000;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    .waitlist-btn:hover  { background: #00ff85; transform: translateY(-1px); }
+    .waitlist-btn:active { transform: translateY(0); }
+
+    .waitlist-btn.success {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--border-focus);
+      cursor: default;
+      transform: none;
+    }
+
+    .form-note {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      color: #4B5563;
+      letter-spacing: 0.02em;
+    }
+
+    @media (max-width: 600px) {
+      .waitlist-form {
+        flex-direction: row;      /* keep side-by-side */
+        gap: 8px;
+        justify-content: center;
+      }
+      .waitlist-input {
+        height: 48px;             /* smaller */
+        flex: 1;
+        font-size: 16px;
+        padding: 0 14px;
+      }
+      .waitlist-btn {
+        height: 48px;             /* smaller */
+        padding: 0 16px;
+        font-size: 16px;
+      }
+      .card-thumb {
+        height: 84px;
+        width: 60px;
+      }
+      .hero{
+        padding: 96px 18px 96px;
+        height: 100vh;
+        height: 100svh;
+      }
+      .card-belt-top{ padding: 8px 0 10px; }
+      .card-belt-bottom{ padding: 10px 0 8px; }
+    }
+
+    @media (max-width: 600px){
+      .lightbox{
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+      }
+    }
+
+    /* ── THANK YOU ── */
+    .thankyou{
+      position: absolute;        /* take it out of normal flow */
+      inset: 0;                  /* fill hero area */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;   /* TRUE vertical centering */
+      text-align: center;
+      pointer-events: none;
+    }
+    /* but keep text selectable/clickable if you ever add links */
+    .thankyou *{
+      pointer-events: auto;
+    }
+    .thankyou-title{
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: clamp(88px, 16vw, 180px); /* same as LEDGER */
+      letter-spacing: -0.04em;
+      line-height: 0.92;
+      color: var(--accent);
+      margin-bottom: 18px;
+      user-select: none;
+    }
+    .thankyou-sub{
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      font-size: clamp(16px, 2.2vw, 20px); /* same as subtitle */
+      letter-spacing: 0.01em;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* fixed conveyors — z-index: 50 keeps them above .thankyou */
+    .card-belt-top,
+    .card-belt-bottom{
+      position: fixed;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      width: 100%;
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+    }
+    .card-belt-top{
+      top: 0;
+      padding: 14px 0 16px;
+    }
+    .card-belt-bottom{
+      bottom: 0;
+      padding: 16px 0 14px;
+    }
+
+    /* ── LIGHTBOX ── */
+    .lightbox{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease;
+      z-index: 9999;
+    }
+    .lightbox.is-open{
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .lightbox-inner{
+      width: min(92vw, 520px);
+      height: min(80vh, 720px);
+      border-radius: 18px;
+      overflow: visible;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* --- TINDER THROW ANIMATION --- */
+    .lightbox-inner{
+      position: relative;
+    }
+    .lightbox-inner img{
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      transform: translateX(0) rotate(0deg) scale(1);
+      opacity: 1;
+      transition: transform 260ms ease, opacity 260ms ease;
+      will-change: transform, opacity;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: pan-y;
+    }
+    /* outgoing throw */
+    .lightbox-inner img.throw-left{
+      transform: translateX(-120%) rotate(-14deg) scale(0.98);
+      opacity: 0;
+    }
+    .lightbox-inner img.throw-right{
+      transform: translateX(120%) rotate(14deg) scale(0.98);
+      opacity: 0;
+    }
+    /* incoming (starts slightly offscreen) */
+    .lightbox-inner img.enter-from-left{
+      transform: translateX(-40%) rotate(-6deg) scale(0.98);
+      opacity: 0;
+    }
+    .lightbox-inner img.enter-from-right{
+      transform: translateX(40%) rotate(6deg) scale(0.98);
+      opacity: 0;
+    }
+
+    .lightbox.is-open .lightbox-inner{
+      transform: translateY(-2px);
+      transition: transform 220ms ease;
+    }
+
+    .card-thumb, .waitlist-btn, .waitlist-input{
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card-thumb{
+      -webkit-touch-callout: none;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .card-thumb, .lightbox, .lightbox-inner img{ transition: none !important; }
+    }
+
+    /* helper for hiding reliably */
+    .is-hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- CARD BELT — page opens directly here, no nav above -->
+  <div class="card-belt card-belt-top" role="presentation" aria-hidden="true">
+    <div class="card-belt-track">
+      <!-- Set A -->
+      <img class="card-thumb" src="cards/card1.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card2.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card3.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card4.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card5.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card6.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card7.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card8.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card9.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card10.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card11.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card12.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card13.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card14.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card15.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card16.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card17.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card18.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card19.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card20.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card21.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card22.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card23.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card24.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card25.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card26.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card27.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card28.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card29.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card30.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card31.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card32.jpg" alt="" draggable="false" />
+      <!-- Set B (duplicate for seamless loop) -->
+      <img class="card-thumb" src="cards/card1.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card2.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card3.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card4.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card5.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card6.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card7.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card8.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card9.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card10.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card11.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card12.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card13.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card14.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card15.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card16.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card17.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card18.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card19.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card20.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card21.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card22.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card23.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card24.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card25.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card26.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card27.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card28.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card29.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card30.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card31.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card32.jpg" alt="" draggable="false" />
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <main class="hero">
+    <div class="hero-inner" id="heroInner">
+      <h1 class="hero-wordmark">Ledger</h1>
+      <p class="hero-sub">The worlds first zero fee trading card exchange</p>
+
+      <form class="waitlist-form"
+      action="https://docs.google.com/forms/d/e/1FAIpQLSeiX4_AXYI1QwJIyyGoTw0lcDNsykIYY2Dd7KvsO4L-7G_2nA/formResponse"
+      method="POST"
+      target="hidden_iframe">
+        <input
+          class="waitlist-input"
+          name="entry.1214374781"
+          type="email"
+          placeholder="Enter your email"
+          autocomplete="email"
+          inputmode="email"
+          required
+        />
+        <button class="waitlist-btn" type="submit" id="submitBtn">
+          Join Waitlist
+        </button>
+      </form>
+
+      <p class="form-note">No spam. Early access only.</p>
+    </div>
+    <div class="thankyou is-hidden" id="thankyou" hidden>
+      <h1 class="thankyou-title">THANK YOU</h1>
+      <p class="thankyou-sub">We will notify you when we launch.</p>
+    </div>
+  </main>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-inner" role="dialog" aria-modal="true">
+      <img id="lightboxImg" alt="" />
+    </div>
+  </div>
+
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  // -------------------------
+  // WAITLIST -> THANK YOU
+  // -------------------------
+  const form = document.querySelector('.waitlist-form');
+  const heroInner = document.getElementById('heroInner');
+  const thankyou = document.getElementById('thankyou');
+
+  if (form) {
+    form.addEventListener('submit', () => {
+      setTimeout(() => {
+        if (heroInner) heroInner.classList.add('is-hidden');
+        if (thankyou) {
+          thankyou.removeAttribute('hidden');
+          thankyou.classList.remove('is-hidden');
+        }
+      }, 500);
+    });
+  }
+
+  // -------------------------
+  // LIGHTBOX (CLICK + SWIPE)
+  // -------------------------
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  if (!lightbox || !lightboxImg) return;
+
+  // Build a UNIQUE swipe list (1–32) based on src
+  const allThumbs = Array.from(document.querySelectorAll('.card-thumb'));
+  const thumbs = [];
+  const seen = new Set();
+
+  for (const img of allThumbs) {
+    const src = img.getAttribute('src');
+    if (!seen.has(src)) {
+      seen.add(src);
+      thumbs.push(img);
+    }
+  }
+
+  let currentIndex = -1;
+  let animLock = false;
+
+  function openAt(index) {
+    if (!thumbs.length) return;
+    if (index < 0 || index >= thumbs.length) index = 0;
+
+    currentIndex = index;
+    lightboxImg.className = '';
+    lightboxImg.src = thumbs[currentIndex].src;
+
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    lightboxImg.src = '';
+    lightboxImg.className = '';
+    currentIndex = -1;
+    animLock = false;
+  }
+
+  // Tinder throw animation + endless cycle
+  function go(dir) {
+    if (animLock) return;
+    if (currentIndex === -1) return;
+    animLock = true;
+
+    const outClass = dir === 'left' ? 'throw-left' : 'throw-right';
+    const inClass  = dir === 'left' ? 'enter-from-right' : 'enter-from-left';
+
+    const nextIndex =
+      dir === 'left'
+        ? (currentIndex + 1) % thumbs.length   // 32 -> 1
+        : (currentIndex - 1 + thumbs.length) % thumbs.length; // 1 -> 32
+
+    lightboxImg.className = outClass;
+
+    const onOutEnd = () => {
+      lightboxImg.removeEventListener('transitionend', onOutEnd);
+
+      currentIndex = nextIndex;
+      lightboxImg.className = inClass;
+      lightboxImg.src = thumbs[currentIndex].src;
+
+      void lightboxImg.offsetWidth;
+
+      requestAnimationFrame(() => {
+        lightboxImg.className = '';
+        const onInEnd = () => {
+          lightboxImg.removeEventListener('transitionend', onInEnd);
+          animLock = false;
+        };
+        lightboxImg.addEventListener('transitionend', onInEnd, { once: true });
+      });
+    };
+
+    lightboxImg.addEventListener('transitionend', onOutEnd, { once: true });
+  }
+
+  function next() { go('left'); }
+  function prev() { go('right'); }
+
+  // ✅ IMPORTANT: event delegation (click ALWAYS works, even with duplicates)
+  document.addEventListener('click', (e) => {
+    const img = e.target.closest('.card-thumb');
+    if (!img) return;
+
+    const src = img.getAttribute('src');
+    const idx = thumbs.findIndex(t => t.getAttribute('src') === src);
+    openAt(idx === -1 ? 0 : idx);
+  });
+
+  // click overlay to close
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  // click/tap left-right half to navigate (desktop + phone)
+  const inner = document.querySelector('.lightbox-inner');
+  function handleInnerTap(clientX) {
+    if (!lightbox.classList.contains('is-open')) return;
+    const rect = inner.getBoundingClientRect();
+    const x = clientX - rect.left;
+    // left half = previous, right half = next
+    if (x < rect.width * 0.5) prev();
+    else next();
+  }
+  if (inner) {
+    // desktop click
+    inner.addEventListener('click', (e) => {
+      handleInnerTap(e.clientX);
+    });
+    // phone tap — only fire if finger barely moved (not a swipe)
+    let innerTouchStartX = 0, innerTouchStartY = 0;
+    inner.addEventListener('touchstart', (e) => {
+      innerTouchStartX = e.touches[0].clientX;
+      innerTouchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    inner.addEventListener('touchend', (e) => {
+      const t = e.changedTouches[0];
+      const dx = Math.abs(t.clientX - innerTouchStartX);
+      const dy = Math.abs(t.clientY - innerTouchStartY);
+      // only treat as tap if finger moved less than 10px
+      if (dx > 10 || dy > 10) return;
+      handleInnerTap(t.clientX);
+    }, { passive: true });
+  }
+
+  // keyboard
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    // RIGHT arrow = next
+    if (e.key === 'ArrowRight') next();
+    // LEFT arrow = previous
+    if (e.key === 'ArrowLeft') prev();
+  });
+
+  // -------------------------
+  // DESKTOP TRACKPAD SWIPE (Mac/trackpad) — uses wheel deltaX
+  // right->left finger  => deltaX > 0 => NEXT (throw left)
+  // left->right finger  => deltaX < 0 => PREV (throw right)
+  // -------------------------
+  let wheelAccumX = 0;
+  let wheelTimer = null;
+  lightbox.addEventListener('wheel', (e) => {
+    if (!lightbox.classList.contains('is-open')) return;
+    // only treat primarily-horizontal gestures as "swipe"
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    // stop page/back gestures from stealing it
+    e.preventDefault();
+    wheelAccumX += (-e.deltaX); // flip if it feels reversed on your desktop
+    // trigger once per gesture
+    const THRESH = 45; // adjust 35-60 if you want more/less sensitivity
+    if (wheelAccumX > THRESH) {
+      // finger moved right->left => NEXT (throw left)
+      next();
+      wheelAccumX = 0;
+      return;
+    }
+    if (wheelAccumX < -THRESH) {
+      // finger moved left->right => PREV (throw right)
+      prev();
+      wheelAccumX = 0;
+      return;
+    }
+    // reset accumulator shortly after gesture ends
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => { wheelAccumX = 0; }, 120);
+  }, { passive: false });
+});
+</script>
+
+  <div class="card-belt card-belt-bottom" role="presentation" aria-hidden="true">
+    <div class="card-belt-track">
+      <!-- Set A -->
+      <img class="card-thumb" src="cards/card1.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card2.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card3.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card4.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card5.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card6.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card7.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card8.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card9.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card10.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card11.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card12.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card13.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card14.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card15.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card16.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card17.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card18.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card19.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card20.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card21.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card22.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card23.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card24.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card25.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card26.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card27.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card28.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card29.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card30.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card31.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card32.jpg" alt="" draggable="false" />
+      <!-- Set B (duplicate for seamless loop) -->
+      <img class="card-thumb" src="cards/card1.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card2.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card3.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card4.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card5.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card6.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card7.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card8.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card9.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card10.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card11.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card12.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card13.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card14.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card15.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card16.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card17.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card18.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card19.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card20.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card21.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card22.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card23.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card24.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card25.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card26.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card27.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card28.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card29.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card30.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card31.jpg" alt="" draggable="false" />
+      <img class="card-thumb" src="cards/card32.jpg" alt="" draggable="false" />
+    </div>
+  </div>
+
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+</body>
+</html>
