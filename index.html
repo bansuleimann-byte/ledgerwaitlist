@@ -3,11 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ledger — Zero-Fee Trading Card Exchange</title>
+  <title>tash — Zero-Fee Trading Card Exchange</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&family=Poppins:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet" />
   <style>
+    @font-face {
+      font-family: 'Blauer Nue';
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+      src: url('fonts/BlauerNue-Light.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Blauer Nue';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('fonts/BlauerNue-Regular.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Blauer Nue';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('fonts/BlauerNue-Bold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Blauer Nue';
+      font-style: normal;
+      font-weight: 800;
+      font-display: swap;
+      src: url('fonts/BlauerNue-ExtraBold.woff2') format('woff2');
+    }
+
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -133,17 +162,17 @@
     }
 
     .hero-wordmark{
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Blauer Nue', sans-serif;
       font-weight: 800;
       font-size: clamp(68px, 12vw, 135px);  /* slightly smaller */
       letter-spacing: -0.03em;
       line-height: 0.92;
-      margin-bottom: 40px;
+      margin-bottom: 16px;
       user-select: none;
     }
 
     .hero-sub {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Blauer Nue', sans-serif;
       font-weight: 300;
       font-size: clamp(16px, 2.2vw, 20px);
       letter-spacing: 0.01em;
@@ -506,7 +535,7 @@
   <!-- HERO -->
   <main class="hero">
     <div class="hero-inner" id="heroInner">
-      <h1 class="hero-wordmark">Ledger</h1>
+      <h1 class="hero-wordmark">tash</h1>
       <p class="hero-sub">The worlds first zero fee trading card exchange</p>
 
       <form class="waitlist-form"
